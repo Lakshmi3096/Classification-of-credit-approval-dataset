@@ -1,0 +1,1189 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>cleancelldata</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-08"><meta name="DC.source" content="cleancelldata.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [cellVectors,count_cell_pos,count_cell_neg]=cleancelldata(cellVectors)
+count_cell_pos=zeros(14,9);
+count_cell_neg=zeros(14,9);
+count_empty=zeros(1,9);
+
+<span class="comment">%filling of missing values of nominal attributes by assigning the maximum</span>
+<span class="comment">%number of times an attribute value appeared corresponding to the missing</span>
+<span class="comment">%instance classs</span>
+
+<span class="comment">%calculating the occurence of the first attribute values with respect to</span>
+<span class="comment">%their class. That is calculating the number of occurences of the value of</span>
+<span class="comment">%'a' when the class is '+' as well as '-'. The same is done for the</span>
+<span class="comment">%attribute value 'b'.</span>
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+     <span class="keyword">if</span> strcmp(cellVectors(i,1),<span class="string">'a'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,1)=count_cell_pos(1,1)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,1),<span class="string">'b'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,1)=count_cell_pos(2,1)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,1),<span class="string">'a'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,1)=count_cell_neg(1,1)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,1),<span class="string">'b'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,1)=count_cell_neg(2,1)+1;
+     <span class="keyword">else</span>
+         count_empty(1,1)=count_empty(1,1)+1;
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+ <span class="comment">%Now fill the missing values of first attribute with the 'a' if the number</span>
+ <span class="comment">%of occurences of 'a' in '+' class is higher or else 'b'. The same is repeated</span>
+ <span class="comment">% for the instance of class '-'.</span>
+ <span class="keyword">for</span> i=1:length(cellVectors)
+         <span class="keyword">if</span> strcmp(cellVectors(i,1),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'+'</span>))
+             [~,l]=max(count_cell_pos(:,1));
+            <span class="keyword">if</span>(l==1)
+                cellVectors(i,1)={<span class="string">'a'</span>};
+               count_cell_pos(1,1) = count_cell_pos(1,1)+1;
+            <span class="keyword">else</span>
+                cellVectors(i,1)={<span class="string">'b'</span>};
+                count_cell_pos(2,1) = count_cell_pos(2,1)+1;
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+
+          <span class="keyword">if</span> strcmp(cellVectors(i,1),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'-'</span>))
+             [~,l]=max(count_cell_neg(:,1));
+            <span class="keyword">if</span>(l==1)
+                cellVectors(i,1)={<span class="string">'a'</span>};
+                count_cell_neg(1,1) = count_cell_neg(1,1)+1;
+            <span class="keyword">else</span>
+                cellVectors(i,1)={<span class="string">'b'</span>};
+                count_cell_neg(2,1) = count_cell_neg(2,1)+1;
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+     <span class="keyword">end</span>
+
+<span class="comment">%calculating the occurence of the second attribute values with respect to</span>
+<span class="comment">%their class. That is calculating the number of occurences of the value of</span>
+<span class="comment">%'u' when the class is '+' as well as '-'. The same is done for the</span>
+<span class="comment">%attribute values 'y','l','t'.</span>
+
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,2),<span class="string">'u'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,2)=count_cell_pos(1,2)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'y'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,2)=count_cell_pos(2,2)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'l'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,2)=count_cell_pos(3,2)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(4,2)=count_cell_pos(4,2)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'u'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,2)=count_cell_neg(1,2)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'y'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,2)=count_cell_neg(2,2)+1;
+          <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'l'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(3,2)=count_cell_neg(3,2)+1;
+          <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(4,2)=count_cell_neg(4,2)+1;
+     <span class="keyword">else</span>
+         count_empty(1,2)=count_empty(1,2)+1;
+    <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+ <span class="comment">%Now fill the missing values of second attribute with the 'u' if the number</span>
+ <span class="comment">%of occurences of 'u' in '+' class is higher or else 'y' or 'l' or 't'. The same is repeated</span>
+ <span class="comment">% for the instance of class '-'.</span>
+ <span class="keyword">for</span> i=1:length(cellVectors)
+
+          <span class="keyword">if</span> strcmp(cellVectors(i,2),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'+'</span>))
+             [~,l]=max(count_cell_pos(:,2));
+            <span class="keyword">if</span>(l==1)
+                cellVectors(i,2)={<span class="string">'u'</span>};
+                count_cell_pos(1,2) = count_cell_pos(1,2)+1;
+            <span class="keyword">elseif</span>(l==2)
+                cellVectors(i,2)={<span class="string">'y'</span>};
+                count_cell_pos(2,2) = count_cell_pos(2,2)+1;
+                <span class="keyword">elseif</span>(l==3)
+                cellVectors(i,2)={<span class="string">'l'</span>};
+                count_cell_pos(3,2) = count_cell_pos(3,2)+1;
+            <span class="keyword">else</span>
+                cellVectors(i,2)={<span class="string">'t'</span>};
+                count_cell_pos(4,2) = count_cell_pos(4,2)+1;
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+
+          <span class="keyword">if</span> strcmp(cellVectors(i,2),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'-'</span>))
+             [~,l]=max(count_cell_neg(:,2));
+            <span class="keyword">if</span>(l==1)
+                cellVectors(i,2)={<span class="string">'u'</span>};
+                count_cell_neg(1,2) = count_cell_neg(1,2)+1;
+                   <span class="keyword">elseif</span>(l==2)
+                cellVectors(i,2)={<span class="string">'y'</span>};
+                count_cell_neg(2,2) = count_cell_neg(2,2)+1;
+                <span class="keyword">elseif</span>(l==3)
+                cellVectors(i,2)={<span class="string">'l'</span>};
+                count_cell_neg(3,2) = count_cell_neg(3,2)+1;
+            <span class="keyword">else</span>
+                cellVectors(i,2)={<span class="string">'t'</span>};
+                count_cell_neg(4,2) = count_cell_neg(4,2)+1;
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+     <span class="keyword">end</span>
+
+<span class="comment">%calculating the occurence of the third attribute values with respect to</span>
+<span class="comment">%their class. That is calculating the number of occurences of the value of</span>
+<span class="comment">%'g' when the class is '+' as well as '-'. The same is done for the</span>
+<span class="comment">%attribute values 'p','gg'.</span>
+
+<span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,3),<span class="string">'g'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,3)=count_cell_pos(1,3)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'p'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,3)=count_cell_pos(2,3)+1;
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'gg'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,3)=count_cell_pos(3,3)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'g'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,3)=count_cell_neg(1,3)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'p'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,3)=count_cell_neg(2,3)+1;
+         <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'gg'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(3,3)=count_cell_neg(3,3)+1;
+     <span class="keyword">else</span>
+         count_empty(1,3)=count_empty(1,3)+1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+<span class="comment">%Now fill the missing values of third attribute with the 'g' if the number</span>
+ <span class="comment">%of occurences of 'g' in '+' class is higher or else 'p' or 'gg'. The same is repeated</span>
+ <span class="comment">% for the instance of class '-'.</span>
+         <span class="keyword">for</span> i=1:length(cellVectors)
+         <span class="keyword">if</span> strcmp(cellVectors(i,3),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'+'</span>))
+             [~,l]=max(count_cell_pos(:,3));
+            <span class="keyword">if</span>(l==1)
+                cellVectors(i,3)={<span class="string">'g'</span>};
+                count_cell_pos(1,3)=count_cell_pos(1,3)+1;
+            <span class="keyword">elseif</span>(l==2)
+                cellVectors(i,3)={<span class="string">'p'</span>};
+                 count_cell_pos(2,3)=count_cell_pos(2,3)+1;
+
+            <span class="keyword">else</span>
+                cellVectors(i,3)={<span class="string">'gg'</span>};
+                 count_cell_pos(3,3)=count_cell_pos(3,3)+1;
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+
+          <span class="keyword">if</span> strcmp(cellVectors(i,3),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'-'</span>))
+             [~,l]=max(count_cell_neg(:,3));
+            <span class="keyword">if</span>(l==1)
+                cellVectors(i,3)={<span class="string">'g'</span>};
+                count_cell_neg(1,3)=count_cell_neg(1,3)+1;
+                   <span class="keyword">elseif</span>(l==2)
+                cellVectors(i,3)={<span class="string">'p'</span>};
+                 count_cell_neg(2,3)=count_cell_neg(2,3)+1;
+            <span class="keyword">else</span>
+                cellVectors(i,3)={<span class="string">'gg'</span>};
+                 count_cell_neg(3,3)=count_cell_neg(3,3)+1;
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+         <span class="keyword">end</span>
+
+     <span class="comment">%calculating the occurence of the fourth attribute values with respect to</span>
+<span class="comment">%their class. That is calculating the number of occurences of the value of</span>
+<span class="comment">%'c' when the class is '+' as well as '-'. The same is done for the</span>
+<span class="comment">%attribute values 'd','cc','i','j','k','m','r','q','w','x','e','aa','ff'.</span>
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,4),<span class="string">'c'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,4)=count_cell_pos(1,4)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'d'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,4)=count_cell_pos(2,4)+1;
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'cc'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,4)=count_cell_pos(3,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'i'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(4,4)=count_cell_pos(4,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'j'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(5,4)=count_cell_pos(5,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'k'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(6,4)=count_cell_pos(6,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'m'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(7,4)=count_cell_pos(7,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'r'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(8,4)=count_cell_pos(8,4)+1;
+
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'q'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(9,4)=count_cell_pos(9,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'w'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(10,4)=count_cell_pos(10,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'x'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(11,4)=count_cell_pos(11,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'e'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(12,4)=count_cell_pos(12,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'aa'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(13,4)=count_cell_pos(13,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'ff'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(14,4)=count_cell_pos(14,4)+1;
+
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'c'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+        count_cell_neg(1,4)=count_cell_neg(1,4)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'d'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(2,4)=count_cell_neg(2,4)+1;
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'cc'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(3,4)=count_cell_neg(3,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'i'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(4,4)=count_cell_neg(4,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'j'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(5,4)=count_cell_neg(5,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'k'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(6,4)=count_cell_neg(6,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'m'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(7,4)=count_cell_neg(7,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'r'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(8,4)=count_cell_neg(8,4)+1;
+
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'q'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(9,4)=count_cell_neg(9,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'w'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(10,4)=count_cell_neg(10,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'x'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(11,4)=count_cell_neg(11,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'e'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(12,4)=count_cell_neg(12,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'aa'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(13,4)=count_cell_neg(13,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'ff'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(14,4)=count_cell_neg(14,4)+1;
+
+     <span class="keyword">else</span>
+         count_empty(1,4)=count_empty(1,4)+1;
+    <span class="keyword">end</span>
+ <span class="keyword">end</span>
+ <span class="comment">%Now fill the missing values of fourth attribute with the 'c' if the number</span>
+ <span class="comment">%of occurences of 'c' in '+' class is higher or else 'd' or 'cc' or 'i' or 'j'</span>
+ <span class="comment">%or 'k' or 'm' or 'r'or 'q'or'w'or'x'or'e'or'aa'or'ff'.The same is repeated</span>
+ <span class="comment">% for the instance of class '-'.</span>
+ <span class="keyword">for</span> i=1:length(cellVectors)
+         <span class="keyword">if</span> strcmp(cellVectors(i,4),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'+'</span>))
+             [~,l]=max(count_cell_pos(:,4));
+            <span class="keyword">if</span>(l==1)
+                cellVectors(i,4)={<span class="string">'c'</span>};
+                count_cell_pos(1,4)=count_cell_pos(1,4)+1;
+            <span class="keyword">elseif</span>(l==2)
+                cellVectors(i,4)={<span class="string">'d'</span>};
+                 count_cell_pos(2,4)=count_cell_pos(2,4)+1;
+                <span class="keyword">elseif</span>(l==3)
+                cellVectors(i,4)={<span class="string">'cc'</span>};
+                 count_cell_pos(3,4)=count_cell_pos(3,4)+1;
+                  <span class="keyword">elseif</span>(l==4)
+                cellVectors(i,4)={<span class="string">'i'</span>};
+                 count_cell_pos(4,4)=count_cell_pos(4,4)+1;
+                 <span class="keyword">elseif</span>(l==5)
+                cellVectors(i,4)={<span class="string">'j'</span>};
+                 count_cell_pos(5,4)=count_cell_pos(5,4)+1;
+                 <span class="keyword">elseif</span>(l==6)
+                cellVectors(i,4)={<span class="string">'k'</span>};
+                 count_cell_pos(6,4)=count_cell_pos(6,4)+1;
+                 <span class="keyword">elseif</span>(l==7)
+                cellVectors(i,4)={<span class="string">'m'</span>};
+                 count_cell_pos(7,4)=count_cell_pos(7,4)+1;
+                 <span class="keyword">elseif</span>(l==8)
+                cellVectors(i,4)={<span class="string">'r'</span>};
+                 count_cell_pos(8,4)=count_cell_pos(8,4)+1;
+                 <span class="keyword">elseif</span>(l==9)
+                cellVectors(i,4)={<span class="string">'q'</span>};
+                 count_cell_pos(9,4)=count_cell_pos(9,4)+1;
+                 <span class="keyword">elseif</span>(l==10)
+                cellVectors(i,4)={<span class="string">'w'</span>};
+                 count_cell_pos(10,4)=count_cell_pos(10,4)+1;
+                 <span class="keyword">elseif</span>(l==11)
+                cellVectors(i,4)={<span class="string">'x'</span>};
+                 count_cell_pos(11,4)=count_cell_pos(11,4)+1;
+                <span class="keyword">elseif</span>(l==12)
+                cellVectors(i,4)={<span class="string">'e'</span>};
+                 count_cell_pos(12,4)=count_cell_pos(12,4)+1;
+                <span class="keyword">elseif</span>(l==13)
+                cellVectors(i,4)={<span class="string">'aa'</span>};
+                 count_cell_pos(13,4)=count_cell_pos(13,4)+1;
+            <span class="keyword">else</span>
+                cellVectors(i,4)={<span class="string">'ff'</span>};
+                 count_cell_pos(14,4)=count_cell_pos(14,4)+1;
+
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+
+          <span class="keyword">if</span> strcmp(cellVectors(i,4),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'-'</span>))
+             [~,l]=max(count_cell_neg(:,4));
+           <span class="keyword">if</span>(l==1)
+                cellVectors(i,4)={<span class="string">'c'</span>};
+                 count_cell_neg(1,4)=count_cell_neg(1,4)+1;
+            <span class="keyword">elseif</span>(l==2)
+                cellVectors(i,4)={<span class="string">'d'</span>};
+                count_cell_neg(2,4)=count_cell_neg(2,4)+1;
+
+                <span class="keyword">elseif</span>(l==3)
+                cellVectors(i,4)={<span class="string">'cc'</span>};
+                count_cell_neg(3,4)=count_cell_neg(3,4)+1;
+                  <span class="keyword">elseif</span>(l==4)
+                cellVectors(i,4)={<span class="string">'i'</span>};
+                count_cell_neg(4,4)=count_cell_neg(4,4)+1;
+                 <span class="keyword">elseif</span>(l==5)
+                cellVectors(i,4)={<span class="string">'j'</span>};
+                count_cell_neg(5,4)=count_cell_neg(5,4)+1;
+                 <span class="keyword">elseif</span>(l==6)
+                cellVectors(i,4)={<span class="string">'k'</span>};
+                count_cell_neg(6,4)=count_cell_neg(6,4)+1;
+                 <span class="keyword">elseif</span>(l==7)
+                cellVectors(i,4)={<span class="string">'m'</span>};
+                count_cell_neg(7,4)=count_cell_neg(7,4)+1;
+                 <span class="keyword">elseif</span>(l==8)
+                cellVectors(i,4)={<span class="string">'r'</span>};
+                count_cell_neg(8,4)=count_cell_neg(8,4)+1;
+                 <span class="keyword">elseif</span>(l==9)
+                cellVectors(i,4)={<span class="string">'q'</span>};
+                count_cell_neg(9,4)=count_cell_neg(9,4)+1;
+                 <span class="keyword">elseif</span>(l==10)
+                cellVectors(i,4)={<span class="string">'w'</span>};
+                count_cell_neg(10,4)=count_cell_neg(10,4)+1;
+                 <span class="keyword">elseif</span>(l==11)
+                cellVectors(i,4)={<span class="string">'x'</span>};
+                count_cell_neg(11,4)=count_cell_neg(11,4)+1;
+                <span class="keyword">elseif</span>(l==12)
+                cellVectors(i,4)={<span class="string">'e'</span>};
+                count_cell_neg(12,4)=count_cell_neg(12,4)+1;
+                <span class="keyword">elseif</span>(l==13)
+                cellVectors(i,4)={<span class="string">'aa'</span>};
+                count_cell_neg(13,4)=count_cell_neg(13,4)+1;
+            <span class="keyword">else</span>
+                cellVectors(i,4)={<span class="string">'ff'</span>};
+                count_cell_neg(14,4)=count_cell_neg(14,4)+1;
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+     <span class="keyword">end</span>
+
+
+ <span class="comment">%calculating the occurence of the fifth attribute values with respect to</span>
+<span class="comment">%their class. That is calculating the number of occurences of the value of</span>
+<span class="comment">%'v' when the class is '+' as well as '-'. The same is done for the</span>
+<span class="comment">%attribute values 'h','bb','j','n','z','dd','ff','o'.</span>
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,5),<span class="string">'v'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,5)=count_cell_pos(1,5)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'h'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,5)=count_cell_pos(2,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'bb'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,5)=count_cell_pos(3,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'j'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(4,5)=count_cell_pos(4,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'n'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(5,5)=count_cell_pos(5,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'z'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(6,5)=count_cell_pos(6,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'dd'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(7,5)=count_cell_pos(7,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'ff'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(8,5)=count_cell_pos(8,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'o'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(9,5)=count_cell_pos(9,5)+1;
+
+
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'v'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+        count_cell_neg(1,5)=count_cell_neg(1,5)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'h'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(2,5)=count_cell_neg(2,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'bb'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(3,5)=count_cell_neg(3,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'j'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(4,5)=count_cell_neg(4,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'n'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(5,5)=count_cell_neg(5,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'z'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(6,5)=count_cell_neg(6,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'dd'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(7,5)=count_cell_neg(7,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'ff'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(8,5)=count_cell_neg(8,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'o'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(9,5)=count_cell_neg(9,5)+1;
+     <span class="keyword">else</span>
+         count_empty(1,5)=count_empty(1,5)+1;
+    <span class="keyword">end</span>
+ <span class="keyword">end</span>
+ <span class="comment">%Now fill the missing values of fifth attribute with the 'c' if the number</span>
+ <span class="comment">%of occurences of 'v' in '+' class is higher or else 'h'or 'bb'or'j'or'n'</span>
+ <span class="comment">%or 'z' or'dd'or'ff'or'o'.The same is repeated</span>
+ <span class="comment">% for the instance of class '-'.</span>
+ <span class="keyword">for</span> i=1:length(cellVectors)
+
+         <span class="keyword">if</span> strcmp(cellVectors(i,5),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'+'</span>))
+             [~,l]=max(count_cell_pos(:,5));
+            <span class="keyword">if</span>(l==1)
+                cellVectors(i,5)={<span class="string">'v'</span>};
+                count_cell_pos(1,5)=count_cell_pos(1,5)+1;
+            <span class="keyword">elseif</span>(l==2)
+                cellVectors(i,5)={<span class="string">'h'</span>};
+                count_cell_pos(2,5)=count_cell_pos(2,5)+1;
+                  <span class="keyword">elseif</span>(l==3)
+                cellVectors(i,5)={<span class="string">'bb'</span>};
+                count_cell_pos(3,5)=count_cell_pos(3,5)+1;
+                  <span class="keyword">elseif</span>(l==4)
+                cellVectors(i,5)={<span class="string">'j'</span>};
+                count_cell_pos(4,5)=count_cell_pos(4,5)+1;
+                  <span class="keyword">elseif</span>(l==5)
+                cellVectors(i,5)={<span class="string">'n'</span>};
+                count_cell_pos(5,5)=count_cell_pos(5,5)+1;
+                  <span class="keyword">elseif</span>(l==6)
+                cellVectors(i,5)={<span class="string">'z'</span>};
+                count_cell_pos(6,5)=count_cell_pos(6,5)+1;
+                  <span class="keyword">elseif</span>(l==7)
+                cellVectors(i,5)={<span class="string">'dd'</span>};
+                count_cell_pos(7,5)=count_cell_pos(7,5)+1;
+                  <span class="keyword">elseif</span>(l==8)
+                cellVectors(i,5)={<span class="string">'ff'</span>};
+                count_cell_pos(8,5)=count_cell_pos(8,5)+1;
+            <span class="keyword">else</span>
+                cellVectors(i,5)={<span class="string">'o'</span>};
+                count_cell_pos(9,5)=count_cell_pos(9,5)+1;
+
+
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+
+          <span class="keyword">if</span> strcmp(cellVectors(i,5),<span class="string">'?'</span>) &amp;&amp;(strcmp(cellVectors(i,10),<span class="string">'-'</span>))
+             [~,l]=max(count_cell_neg(:,5));
+
+            <span class="keyword">if</span>(l==1)
+                cellVectors(i,5)={<span class="string">'v'</span>};
+                count_cell_neg(1,5)=count_cell_neg(1,5)+1;
+            <span class="keyword">elseif</span>(l==2)
+                cellVectors(i,5)={<span class="string">'h'</span>};
+                count_cell_neg(2,5)=count_cell_neg(2,5)+1;
+                  <span class="keyword">elseif</span>(l==3)
+                cellVectors(i,5)={<span class="string">'bb'</span>};
+                count_cell_neg(3,5)=count_cell_neg(3,5)+1;
+                  <span class="keyword">elseif</span>(l==4)
+                cellVectors(i,5)={<span class="string">'j'</span>};
+                count_cell_neg(4,5)=count_cell_neg(4,5)+1;
+                  <span class="keyword">elseif</span>(l==5)
+                cellVectors(i,5)={<span class="string">'n'</span>};
+                count_cell_neg(5,5)=count_cell_neg(5,5)+1;
+                  <span class="keyword">elseif</span>(l==6)
+                cellVectors(i,5)={<span class="string">'z'</span>};
+                count_cell_neg(6,5)=count_cell_neg(6,5)+1;
+                  <span class="keyword">elseif</span>(l==7)
+                cellVectors(i,5)={<span class="string">'dd'</span>};
+                count_cell_neg(7,5)=count_cell_neg(7,5)+1;
+                  <span class="keyword">elseif</span>(l==8)
+                cellVectors(i,5)={<span class="string">'ff'</span>};
+                count_cell_neg(8,5)=count_cell_neg(8,5)+1;
+            <span class="keyword">else</span>
+                cellVectors(i,5)={<span class="string">'o'</span>};
+                count_cell_neg(9,5)=count_cell_neg(9,5)+1;
+            <span class="keyword">end</span>
+         <span class="keyword">end</span>
+
+ <span class="keyword">end</span>
+
+ <span class="comment">%calculating the occurence of the sixth attribute values with respect to</span>
+<span class="comment">%their class. That is calculating the number of occurences of the value of</span>
+<span class="comment">%'t' when the class is '+' as well as '-'. The same is done for the</span>
+<span class="comment">%attribute values 'f'.</span>
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,6),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,6)=count_cell_pos(1,6)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,6),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,6)=count_cell_pos(2,6)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,6),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,6)=count_cell_neg(1,6)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,6),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,6)=count_cell_neg(2,6)+1;
+     <span class="keyword">else</span>
+         count_empty(1,6)=count_empty(1,6)+1;
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+ <span class="comment">%calculating the occurence of the seventhh attribute values with respect to</span>
+<span class="comment">%their class. That is calculating the number of occurences of the value of</span>
+<span class="comment">%'t' when the class is '+' as well as '-'. The same is done for the</span>
+<span class="comment">%attribute values 'f'.</span>
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,7),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,7)=count_cell_pos(1,7)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,7),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,7)=count_cell_pos(2,7)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,7),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,7)=count_cell_neg(1,7)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,7),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,7)=count_cell_neg(2,7)+1;
+     <span class="keyword">else</span>
+         count_empty(1,7)=count_empty(1,7)+1;
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+
+ <span class="comment">%calculating the occurence of the eighth attribute values with respect to</span>
+<span class="comment">%their class. That is calculating the number of occurences of the value of</span>
+<span class="comment">%'t' when the class is '+' as well as '-'. The same is done for the</span>
+<span class="comment">%attribute values 'f'.</span>
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,8),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,8)=count_cell_pos(1,8)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,8),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,8)=count_cell_pos(2,8)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,8),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,8)=count_cell_neg(1,8)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,8),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,8)=count_cell_neg(2,8)+1;
+     <span class="keyword">else</span>
+         count_empty(1,8)=count_empty(1,8)+1;
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+ <span class="comment">%calculating the occurence of the nineth attribute values with respect to</span>
+<span class="comment">%their class. That is calculating the number of occurences of the value of</span>
+<span class="comment">%'g' when the class is '+' as well as '-'. The same is done for the</span>
+<span class="comment">%attribute values 'p','s'.</span>
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,9),<span class="string">'g'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,9)=count_cell_pos(1,9)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'p'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,9)=count_cell_pos(2,9)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'s'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,9)=count_cell_pos(3,9)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'g'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,9)=count_cell_neg(1,9)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'p'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,9)=count_cell_neg(2,9)+1;
+         <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'s'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(3,9)=count_cell_neg(3,9)+1;
+     <span class="keyword">else</span>
+         count_empty(1,9)=count_empty(1,9)+1;
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Error using cleancelldata (line 15)
+Not enough input arguments.
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [cellVectors,count_cell_pos,count_cell_neg]=cleancelldata(cellVectors) 
+count_cell_pos=zeros(14,9);
+count_cell_neg=zeros(14,9);
+count_empty=zeros(1,9);
+
+%filling of missing values of nominal attributes by assigning the maximum
+%number of times an attribute value appeared corresponding to the missing
+%instance classs
+
+%calculating the occurence of the first attribute values with respect to
+%their class. That is calculating the number of occurences of the value of
+%'a' when the class is '+' as well as '-'. The same is done for the
+%attribute value 'b'.
+
+ for i=1:length(cellVectors)
+     if strcmp(cellVectors(i,1),'a') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,1)=count_cell_pos(1,1)+1;
+     elseif strcmp(cellVectors(i,1),'b') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,1)=count_cell_pos(2,1)+1;
+     elseif strcmp(cellVectors(i,1),'a') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,1)=count_cell_neg(1,1)+1;
+     elseif strcmp(cellVectors(i,1),'b') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,1)=count_cell_neg(2,1)+1;
+     else
+         count_empty(1,1)=count_empty(1,1)+1;
+     end
+ end
+ 
+ %Now fill the missing values of first attribute with the 'a' if the number
+ %of occurences of 'a' in '+' class is higher or else 'b'. The same is repeated 
+ % for the instance of class '-'.
+ for i=1:length(cellVectors)
+         if strcmp(cellVectors(i,1),'?') &&(strcmp(cellVectors(i,10),'+'))
+             [~,l]=max(count_cell_pos(:,1));
+            if(l==1)
+                cellVectors(i,1)={'a'};
+               count_cell_pos(1,1) = count_cell_pos(1,1)+1;
+            else
+                cellVectors(i,1)={'b'};
+                count_cell_pos(2,1) = count_cell_pos(2,1)+1;
+            end
+         end
+         
+          if strcmp(cellVectors(i,1),'?') &&(strcmp(cellVectors(i,10),'-'))
+             [~,l]=max(count_cell_neg(:,1));
+            if(l==1)
+                cellVectors(i,1)={'a'};
+                count_cell_neg(1,1) = count_cell_neg(1,1)+1;
+            else
+                cellVectors(i,1)={'b'};
+                count_cell_neg(2,1) = count_cell_neg(2,1)+1;
+            end
+         end
+     end
+ 
+%calculating the occurence of the second attribute values with respect to
+%their class. That is calculating the number of occurences of the value of
+%'u' when the class is '+' as well as '-'. The same is done for the
+%attribute values 'y','l','t'.
+
+ 
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,2),'u') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,2)=count_cell_pos(1,2)+1;
+    elseif strcmp(cellVectors(i,2),'y') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,2)=count_cell_pos(2,2)+1;
+        elseif strcmp(cellVectors(i,2),'l') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,2)=count_cell_pos(3,2)+1;
+        elseif strcmp(cellVectors(i,2),'t') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(4,2)=count_cell_pos(4,2)+1;
+  elseif strcmp(cellVectors(i,2),'u') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,2)=count_cell_neg(1,2)+1;
+     elseif strcmp(cellVectors(i,2),'y') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,2)=count_cell_neg(2,2)+1;
+          elseif strcmp(cellVectors(i,2),'l') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(3,2)=count_cell_neg(3,2)+1;
+          elseif strcmp(cellVectors(i,2),'t') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(4,2)=count_cell_neg(4,2)+1;
+     else
+         count_empty(1,2)=count_empty(1,2)+1;
+    end
+ end
+ 
+ %Now fill the missing values of second attribute with the 'u' if the number
+ %of occurences of 'u' in '+' class is higher or else 'y' or 'l' or 't'. The same is repeated 
+ % for the instance of class '-'.
+ for i=1:length(cellVectors)
+         
+          if strcmp(cellVectors(i,2),'?') &&(strcmp(cellVectors(i,10),'+'))
+             [~,l]=max(count_cell_pos(:,2));
+            if(l==1)
+                cellVectors(i,2)={'u'};
+                count_cell_pos(1,2) = count_cell_pos(1,2)+1;
+            elseif(l==2)
+                cellVectors(i,2)={'y'};
+                count_cell_pos(2,2) = count_cell_pos(2,2)+1;
+                elseif(l==3)
+                cellVectors(i,2)={'l'};
+                count_cell_pos(3,2) = count_cell_pos(3,2)+1;
+            else
+                cellVectors(i,2)={'t'};
+                count_cell_pos(4,2) = count_cell_pos(4,2)+1;
+            end
+         end
+         
+          if strcmp(cellVectors(i,2),'?') &&(strcmp(cellVectors(i,10),'-'))
+             [~,l]=max(count_cell_neg(:,2));
+            if(l==1)
+                cellVectors(i,2)={'u'};
+                count_cell_neg(1,2) = count_cell_neg(1,2)+1;
+                   elseif(l==2)
+                cellVectors(i,2)={'y'};
+                count_cell_neg(2,2) = count_cell_neg(2,2)+1;
+                elseif(l==3)
+                cellVectors(i,2)={'l'};
+                count_cell_neg(3,2) = count_cell_neg(3,2)+1;
+            else
+                cellVectors(i,2)={'t'};
+                count_cell_neg(4,2) = count_cell_neg(4,2)+1;
+            end
+         end
+     end
+ 
+%calculating the occurence of the third attribute values with respect to
+%their class. That is calculating the number of occurences of the value of
+%'g' when the class is '+' as well as '-'. The same is done for the
+%attribute values 'p','gg'.
+
+for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,3),'g') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,3)=count_cell_pos(1,3)+1;
+    elseif strcmp(cellVectors(i,3),'p') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,3)=count_cell_pos(2,3)+1;
+       elseif strcmp(cellVectors(i,3),'gg') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,3)=count_cell_pos(3,3)+1;
+  elseif strcmp(cellVectors(i,3),'g') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,3)=count_cell_neg(1,3)+1;
+     elseif strcmp(cellVectors(i,3),'p') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,3)=count_cell_neg(2,3)+1;
+         elseif strcmp(cellVectors(i,3),'gg') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(3,3)=count_cell_neg(3,3)+1;
+     else
+         count_empty(1,3)=count_empty(1,3)+1;
+    end
+end
+%Now fill the missing values of third attribute with the 'g' if the number
+ %of occurences of 'g' in '+' class is higher or else 'p' or 'gg'. The same is repeated 
+ % for the instance of class '-'.
+         for i=1:length(cellVectors)
+         if strcmp(cellVectors(i,3),'?') &&(strcmp(cellVectors(i,10),'+'))
+             [~,l]=max(count_cell_pos(:,3));
+            if(l==1)
+                cellVectors(i,3)={'g'};
+                count_cell_pos(1,3)=count_cell_pos(1,3)+1;
+            elseif(l==2)
+                cellVectors(i,3)={'p'};
+                 count_cell_pos(2,3)=count_cell_pos(2,3)+1;
+               
+            else
+                cellVectors(i,3)={'gg'};
+                 count_cell_pos(3,3)=count_cell_pos(3,3)+1;
+            end
+         end
+         
+          if strcmp(cellVectors(i,3),'?') &&(strcmp(cellVectors(i,10),'-'))
+             [~,l]=max(count_cell_neg(:,3));
+            if(l==1)
+                cellVectors(i,3)={'g'};
+                count_cell_neg(1,3)=count_cell_neg(1,3)+1;
+                   elseif(l==2)
+                cellVectors(i,3)={'p'};
+                 count_cell_neg(2,3)=count_cell_neg(2,3)+1;
+            else
+                cellVectors(i,3)={'gg'};
+                 count_cell_neg(3,3)=count_cell_neg(3,3)+1;
+            end
+         end
+         end
+
+     %calculating the occurence of the fourth attribute values with respect to
+%their class. That is calculating the number of occurences of the value of
+%'c' when the class is '+' as well as '-'. The same is done for the
+%attribute values 'd','cc','i','j','k','m','r','q','w','x','e','aa','ff'.
+
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,4),'c') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,4)=count_cell_pos(1,4)+1;
+    elseif strcmp(cellVectors(i,4),'d') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,4)=count_cell_pos(2,4)+1;
+       elseif strcmp(cellVectors(i,4),'cc') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,4)=count_cell_pos(3,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'i') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(4,4)=count_cell_pos(4,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'j') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(5,4)=count_cell_pos(5,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'k') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(6,4)=count_cell_pos(6,4)+1;
+        elseif strcmp(cellVectors(i,4),'m') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(7,4)=count_cell_pos(7,4)+1;
+        elseif strcmp(cellVectors(i,4),'r') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(8,4)=count_cell_pos(8,4)+1;
+       
+        elseif strcmp(cellVectors(i,4),'q') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(9,4)=count_cell_pos(9,4)+1;
+        elseif strcmp(cellVectors(i,4),'w') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(10,4)=count_cell_pos(10,4)+1;
+        elseif strcmp(cellVectors(i,4),'x') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(11,4)=count_cell_pos(11,4)+1;
+        elseif strcmp(cellVectors(i,4),'e') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(12,4)=count_cell_pos(12,4)+1;
+        elseif strcmp(cellVectors(i,4),'aa') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(13,4)=count_cell_pos(13,4)+1;
+        elseif strcmp(cellVectors(i,4),'ff') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(14,4)=count_cell_pos(14,4)+1;
+ 
+    elseif strcmp(cellVectors(i,4),'c') && strcmp(cellVectors(i,10),'-')
+        count_cell_neg(1,4)=count_cell_neg(1,4)+1;
+    elseif strcmp(cellVectors(i,4),'d') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(2,4)=count_cell_neg(2,4)+1;
+       elseif strcmp(cellVectors(i,4),'cc') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(3,4)=count_cell_neg(3,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'i') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(4,4)=count_cell_neg(4,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'j') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(5,4)=count_cell_neg(5,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'k') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(6,4)=count_cell_neg(6,4)+1;
+        elseif strcmp(cellVectors(i,4),'m') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(7,4)=count_cell_neg(7,4)+1;
+        elseif strcmp(cellVectors(i,4),'r') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(8,4)=count_cell_neg(8,4)+1;
+       
+        elseif strcmp(cellVectors(i,4),'q') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(9,4)=count_cell_neg(9,4)+1;
+        elseif strcmp(cellVectors(i,4),'w') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(10,4)=count_cell_neg(10,4)+1;
+        elseif strcmp(cellVectors(i,4),'x') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(11,4)=count_cell_neg(11,4)+1;
+        elseif strcmp(cellVectors(i,4),'e') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(12,4)=count_cell_neg(12,4)+1;
+        elseif strcmp(cellVectors(i,4),'aa') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(13,4)=count_cell_neg(13,4)+1;
+        elseif strcmp(cellVectors(i,4),'ff') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(14,4)=count_cell_neg(14,4)+1;
+       
+     else
+         count_empty(1,4)=count_empty(1,4)+1;
+    end
+ end
+ %Now fill the missing values of fourth attribute with the 'c' if the number
+ %of occurences of 'c' in '+' class is higher or else 'd' or 'cc' or 'i' or 'j'
+ %or 'k' or 'm' or 'r'or 'q'or'w'or'x'or'e'or'aa'or'ff'.The same is repeated 
+ % for the instance of class '-'.
+ for i=1:length(cellVectors)
+         if strcmp(cellVectors(i,4),'?') &&(strcmp(cellVectors(i,10),'+'))
+             [~,l]=max(count_cell_pos(:,4));
+            if(l==1)
+                cellVectors(i,4)={'c'};
+                count_cell_pos(1,4)=count_cell_pos(1,4)+1;
+            elseif(l==2)
+                cellVectors(i,4)={'d'};
+                 count_cell_pos(2,4)=count_cell_pos(2,4)+1;
+                elseif(l==3)
+                cellVectors(i,4)={'cc'};
+                 count_cell_pos(3,4)=count_cell_pos(3,4)+1;
+                  elseif(l==4)
+                cellVectors(i,4)={'i'};
+                 count_cell_pos(4,4)=count_cell_pos(4,4)+1;
+                 elseif(l==5)
+                cellVectors(i,4)={'j'};
+                 count_cell_pos(5,4)=count_cell_pos(5,4)+1;
+                 elseif(l==6)
+                cellVectors(i,4)={'k'};
+                 count_cell_pos(6,4)=count_cell_pos(6,4)+1;
+                 elseif(l==7)
+                cellVectors(i,4)={'m'};
+                 count_cell_pos(7,4)=count_cell_pos(7,4)+1;
+                 elseif(l==8)
+                cellVectors(i,4)={'r'};
+                 count_cell_pos(8,4)=count_cell_pos(8,4)+1;
+                 elseif(l==9)
+                cellVectors(i,4)={'q'};
+                 count_cell_pos(9,4)=count_cell_pos(9,4)+1;
+                 elseif(l==10)
+                cellVectors(i,4)={'w'};
+                 count_cell_pos(10,4)=count_cell_pos(10,4)+1;
+                 elseif(l==11)
+                cellVectors(i,4)={'x'};
+                 count_cell_pos(11,4)=count_cell_pos(11,4)+1;
+                elseif(l==12)
+                cellVectors(i,4)={'e'};
+                 count_cell_pos(12,4)=count_cell_pos(12,4)+1;
+                elseif(l==13)
+                cellVectors(i,4)={'aa'};
+                 count_cell_pos(13,4)=count_cell_pos(13,4)+1;
+            else
+                cellVectors(i,4)={'ff'};
+                 count_cell_pos(14,4)=count_cell_pos(14,4)+1;
+            
+            end
+         end
+         
+          if strcmp(cellVectors(i,4),'?') &&(strcmp(cellVectors(i,10),'-'))
+             [~,l]=max(count_cell_neg(:,4));
+           if(l==1)
+                cellVectors(i,4)={'c'};
+                 count_cell_neg(1,4)=count_cell_neg(1,4)+1;
+            elseif(l==2)
+                cellVectors(i,4)={'d'};
+                count_cell_neg(2,4)=count_cell_neg(2,4)+1;
+
+                elseif(l==3)
+                cellVectors(i,4)={'cc'};
+                count_cell_neg(3,4)=count_cell_neg(3,4)+1;
+                  elseif(l==4)
+                cellVectors(i,4)={'i'};
+                count_cell_neg(4,4)=count_cell_neg(4,4)+1;
+                 elseif(l==5)
+                cellVectors(i,4)={'j'};
+                count_cell_neg(5,4)=count_cell_neg(5,4)+1;
+                 elseif(l==6)
+                cellVectors(i,4)={'k'};
+                count_cell_neg(6,4)=count_cell_neg(6,4)+1;
+                 elseif(l==7)
+                cellVectors(i,4)={'m'};
+                count_cell_neg(7,4)=count_cell_neg(7,4)+1;
+                 elseif(l==8)
+                cellVectors(i,4)={'r'};
+                count_cell_neg(8,4)=count_cell_neg(8,4)+1;
+                 elseif(l==9)
+                cellVectors(i,4)={'q'};
+                count_cell_neg(9,4)=count_cell_neg(9,4)+1;
+                 elseif(l==10)
+                cellVectors(i,4)={'w'};
+                count_cell_neg(10,4)=count_cell_neg(10,4)+1;
+                 elseif(l==11)
+                cellVectors(i,4)={'x'};
+                count_cell_neg(11,4)=count_cell_neg(11,4)+1;
+                elseif(l==12)
+                cellVectors(i,4)={'e'};
+                count_cell_neg(12,4)=count_cell_neg(12,4)+1;
+                elseif(l==13)
+                cellVectors(i,4)={'aa'};
+                count_cell_neg(13,4)=count_cell_neg(13,4)+1;
+            else
+                cellVectors(i,4)={'ff'};
+                count_cell_neg(14,4)=count_cell_neg(14,4)+1;
+            end
+         end
+     end
+
+ 
+ %calculating the occurence of the fifth attribute values with respect to
+%their class. That is calculating the number of occurences of the value of
+%'v' when the class is '+' as well as '-'. The same is done for the
+%attribute values 'h','bb','j','n','z','dd','ff','o'.
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,5),'v') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,5)=count_cell_pos(1,5)+1;
+    elseif strcmp(cellVectors(i,5),'h') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,5)=count_cell_pos(2,5)+1;
+        elseif strcmp(cellVectors(i,5),'bb') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,5)=count_cell_pos(3,5)+1;
+        elseif strcmp(cellVectors(i,5),'j') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(4,5)=count_cell_pos(4,5)+1;
+        elseif strcmp(cellVectors(i,5),'n') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(5,5)=count_cell_pos(5,5)+1;
+        elseif strcmp(cellVectors(i,5),'z') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(6,5)=count_cell_pos(6,5)+1;
+        elseif strcmp(cellVectors(i,5),'dd') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(7,5)=count_cell_pos(7,5)+1;
+        elseif strcmp(cellVectors(i,5),'ff') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(8,5)=count_cell_pos(8,5)+1;
+        elseif strcmp(cellVectors(i,5),'o') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(9,5)=count_cell_pos(9,5)+1;
+  
+       
+    elseif strcmp(cellVectors(i,5),'v') && strcmp(cellVectors(i,10),'-')
+        count_cell_neg(1,5)=count_cell_neg(1,5)+1;
+    elseif strcmp(cellVectors(i,5),'h') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(2,5)=count_cell_neg(2,5)+1;
+        elseif strcmp(cellVectors(i,5),'bb') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(3,5)=count_cell_neg(3,5)+1;
+        elseif strcmp(cellVectors(i,5),'j') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(4,5)=count_cell_neg(4,5)+1;
+        elseif strcmp(cellVectors(i,5),'n') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(5,5)=count_cell_neg(5,5)+1;
+        elseif strcmp(cellVectors(i,5),'z') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(6,5)=count_cell_neg(6,5)+1;
+        elseif strcmp(cellVectors(i,5),'dd') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(7,5)=count_cell_neg(7,5)+1;
+        elseif strcmp(cellVectors(i,5),'ff') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(8,5)=count_cell_neg(8,5)+1;
+        elseif strcmp(cellVectors(i,5),'o') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(9,5)=count_cell_neg(9,5)+1;
+     else
+         count_empty(1,5)=count_empty(1,5)+1;
+    end
+ end
+ %Now fill the missing values of fifth attribute with the 'c' if the number
+ %of occurences of 'v' in '+' class is higher or else 'h'or 'bb'or'j'or'n'
+ %or 'z' or'dd'or'ff'or'o'.The same is repeated 
+ % for the instance of class '-'.
+ for i=1:length(cellVectors)
+         
+         if strcmp(cellVectors(i,5),'?') &&(strcmp(cellVectors(i,10),'+'))
+             [~,l]=max(count_cell_pos(:,5));
+            if(l==1)
+                cellVectors(i,5)={'v'};
+                count_cell_pos(1,5)=count_cell_pos(1,5)+1;
+            elseif(l==2)
+                cellVectors(i,5)={'h'};
+                count_cell_pos(2,5)=count_cell_pos(2,5)+1;
+                  elseif(l==3)
+                cellVectors(i,5)={'bb'};
+                count_cell_pos(3,5)=count_cell_pos(3,5)+1;
+                  elseif(l==4)
+                cellVectors(i,5)={'j'};
+                count_cell_pos(4,5)=count_cell_pos(4,5)+1;
+                  elseif(l==5)
+                cellVectors(i,5)={'n'};
+                count_cell_pos(5,5)=count_cell_pos(5,5)+1;
+                  elseif(l==6)
+                cellVectors(i,5)={'z'};
+                count_cell_pos(6,5)=count_cell_pos(6,5)+1;
+                  elseif(l==7)
+                cellVectors(i,5)={'dd'};
+                count_cell_pos(7,5)=count_cell_pos(7,5)+1;
+                  elseif(l==8)
+                cellVectors(i,5)={'ff'};
+                count_cell_pos(8,5)=count_cell_pos(8,5)+1;
+            else
+                cellVectors(i,5)={'o'};
+                count_cell_pos(9,5)=count_cell_pos(9,5)+1;
+               
+            
+            end
+         end
+         
+          if strcmp(cellVectors(i,5),'?') &&(strcmp(cellVectors(i,10),'-'))
+             [~,l]=max(count_cell_neg(:,5));
+           
+            if(l==1)
+                cellVectors(i,5)={'v'};
+                count_cell_neg(1,5)=count_cell_neg(1,5)+1;
+            elseif(l==2)
+                cellVectors(i,5)={'h'};
+                count_cell_neg(2,5)=count_cell_neg(2,5)+1;
+                  elseif(l==3)
+                cellVectors(i,5)={'bb'};
+                count_cell_neg(3,5)=count_cell_neg(3,5)+1;
+                  elseif(l==4)
+                cellVectors(i,5)={'j'};
+                count_cell_neg(4,5)=count_cell_neg(4,5)+1;
+                  elseif(l==5)
+                cellVectors(i,5)={'n'};
+                count_cell_neg(5,5)=count_cell_neg(5,5)+1;
+                  elseif(l==6)
+                cellVectors(i,5)={'z'};
+                count_cell_neg(6,5)=count_cell_neg(6,5)+1;
+                  elseif(l==7)
+                cellVectors(i,5)={'dd'};
+                count_cell_neg(7,5)=count_cell_neg(7,5)+1;
+                  elseif(l==8)
+                cellVectors(i,5)={'ff'};
+                count_cell_neg(8,5)=count_cell_neg(8,5)+1;
+            else
+                cellVectors(i,5)={'o'};
+                count_cell_neg(9,5)=count_cell_neg(9,5)+1;
+            end
+         end
+         
+ end 
+      
+ %calculating the occurence of the sixth attribute values with respect to
+%their class. That is calculating the number of occurences of the value of
+%'t' when the class is '+' as well as '-'. The same is done for the
+%attribute values 'f'.
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,6),'t') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,6)=count_cell_pos(1,6)+1;
+    elseif strcmp(cellVectors(i,6),'f') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,6)=count_cell_pos(2,6)+1;
+  elseif strcmp(cellVectors(i,6),'t') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,6)=count_cell_neg(1,6)+1;
+     elseif strcmp(cellVectors(i,6),'f') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,6)=count_cell_neg(2,6)+1;
+     else
+         count_empty(1,6)=count_empty(1,6)+1;
+     end
+ end
+ 
+ %calculating the occurence of the seventhh attribute values with respect to
+%their class. That is calculating the number of occurences of the value of
+%'t' when the class is '+' as well as '-'. The same is done for the
+%attribute values 'f'.
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,7),'t') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,7)=count_cell_pos(1,7)+1;
+    elseif strcmp(cellVectors(i,7),'f') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,7)=count_cell_pos(2,7)+1;
+  elseif strcmp(cellVectors(i,7),'t') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,7)=count_cell_neg(1,7)+1;
+     elseif strcmp(cellVectors(i,7),'f') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,7)=count_cell_neg(2,7)+1;
+     else
+         count_empty(1,7)=count_empty(1,7)+1;
+     end
+ end
+ 
+  
+ %calculating the occurence of the eighth attribute values with respect to
+%their class. That is calculating the number of occurences of the value of
+%'t' when the class is '+' as well as '-'. The same is done for the
+%attribute values 'f'.
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,8),'t') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,8)=count_cell_pos(1,8)+1;
+    elseif strcmp(cellVectors(i,8),'f') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,8)=count_cell_pos(2,8)+1;
+  elseif strcmp(cellVectors(i,8),'t') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,8)=count_cell_neg(1,8)+1;
+     elseif strcmp(cellVectors(i,8),'f') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,8)=count_cell_neg(2,8)+1;
+     else
+         count_empty(1,8)=count_empty(1,8)+1;
+     end
+ end
+ 
+ %calculating the occurence of the nineth attribute values with respect to
+%their class. That is calculating the number of occurences of the value of
+%'g' when the class is '+' as well as '-'. The same is done for the
+%attribute values 'p','s'.
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,9),'g') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,9)=count_cell_pos(1,9)+1;
+    elseif strcmp(cellVectors(i,9),'p') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,9)=count_cell_pos(2,9)+1;
+        elseif strcmp(cellVectors(i,9),'s') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,9)=count_cell_pos(3,9)+1;
+  elseif strcmp(cellVectors(i,9),'g') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,9)=count_cell_neg(1,9)+1;
+     elseif strcmp(cellVectors(i,9),'p') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,9)=count_cell_neg(2,9)+1;
+         elseif strcmp(cellVectors(i,9),'s') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(3,9)=count_cell_neg(3,9)+1;
+     else
+         count_empty(1,9)=count_empty(1,9)+1;
+     end
+ end
+end
+
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,682 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>computeProbabilitymatrix</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-08"><meta name="DC.source" content="computeProbabilitymatrix.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [p_datapos,p_dataneg,p_cellpos,p_cellneg,data1_min,data1_increment,count_cell_pos]=computeProbabilitymatrix(cellVectors,datanew,k,l)
+count_data_pos=zeros(k,6);
+count_data_neg=zeros(k,6);
+
+ [n,n1]=size(datanew);
+
+ <span class="comment">%compute the probability matrix which gives the probabilities of an</span>
+ <span class="comment">%attribute value give class. For example:</span>
+ <span class="comment">%P(X1='a'|class='+')</span>
+ <span class="comment">%The separate matrix is computed for the positive class as well as for</span>
+ <span class="comment">%negative class for each attribute.</span>
+ <span class="comment">%For the Continous data a slight different approach is used, that is,</span>
+ <span class="comment">%first binning is done and then the Probability is computed if the value</span>
+ <span class="comment">%lies in the corresponding bin or not.For example:</span>
+ <span class="comment">%P(X=min+(j-1)*increment&lt;=x&lt;min+j*increment|class='+')</span>
+ <span class="comment">%Furthermore, the laplacian smoothing is applied while computing the</span>
+ <span class="comment">%probability of attribute values with no instances in the training data.</span>
+ <span class="comment">%the variable l and ls corresponds to the laplacian operator =1.</span>
+ <span class="keyword">for</span> u=1:n1
+ data1_max(u)=max(datanew(:,u));
+ data1_min(u)=min(datanew(:,u));
+ data1_range(u)=data1_max(u)-data1_min(u);
+ data1_increment(u)=data1_range(u)/(k-1);
+
+ <span class="keyword">for</span> i=1:n
+     <span class="keyword">for</span> j=1:k
+         L=data1_min(u)+(j-1)*data1_increment(u);
+         H=data1_min(u)+(j)*data1_increment(u);
+    <span class="keyword">if</span> (L&lt;=datanew(i,u)) &amp;&amp; (datanew(i,u)&lt;H) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_data_pos(j,u)=count_data_pos(j,u)+1;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> (L&lt;=datanew(i,u)) &amp;&amp; (datanew(i,u)&lt;H) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+        count_data_neg(j,u)=count_data_neg(j,u)+1;
+    <span class="keyword">end</span>
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+ p_dataneg=(count_data_neg+l*ones(size(count_data_neg),<span class="string">'like'</span>,count_data_neg))/(sum(count_data_neg(:,1))+l*(k));
+ p_datapos=(count_data_pos+l*ones(size(count_data_pos),<span class="string">'like'</span>,count_data_pos))/(sum(count_data_pos(:,1))+l*(k));
+
+count_cell_pos=zeros(14,9);
+count_cell_neg=zeros(14,9);
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+     <span class="keyword">if</span> strcmp(cellVectors(i,1),<span class="string">'a'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,1)=count_cell_pos(1,1)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,1),<span class="string">'b'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,1)=count_cell_pos(2,1)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,1),<span class="string">'a'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,1)=count_cell_neg(1,1)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,1),<span class="string">'b'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,1)=count_cell_neg(2,1)+1;
+     <span class="keyword">else</span>
+         <span class="keyword">continue</span>;
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,2),<span class="string">'u'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,2)=count_cell_pos(1,2)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'y'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,2)=count_cell_pos(2,2)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'l'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,2)=count_cell_pos(3,2)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(4,2)=count_cell_pos(4,2)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'u'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,2)=count_cell_neg(1,2)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'y'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,2)=count_cell_neg(2,2)+1;
+          <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'l'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(3,2)=count_cell_neg(3,2)+1;
+          <span class="keyword">elseif</span> strcmp(cellVectors(i,2),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(4,2)=count_cell_neg(4,2)+1;
+     <span class="keyword">else</span>
+         <span class="keyword">continue</span>;
+    <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,3),<span class="string">'g'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,3)=count_cell_pos(1,3)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'p'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,3)=count_cell_pos(2,3)+1;
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'gg'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,3)=count_cell_pos(3,3)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'g'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,3)=count_cell_neg(1,3)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'p'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,3)=count_cell_neg(2,3)+1;
+         <span class="keyword">elseif</span> strcmp(cellVectors(i,3),<span class="string">'gg'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(3,3)=count_cell_neg(3,3)+1;
+     <span class="keyword">else</span>
+         <span class="keyword">continue</span>;
+    <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,4),<span class="string">'c'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,4)=count_cell_pos(1,4)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'d'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,4)=count_cell_pos(2,4)+1;
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'cc'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,4)=count_cell_pos(3,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'i'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(4,4)=count_cell_pos(4,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'j'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(5,4)=count_cell_pos(5,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'k'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(6,4)=count_cell_pos(6,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'m'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(7,4)=count_cell_pos(7,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'r'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(8,4)=count_cell_pos(8,4)+1;
+
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'q'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(9,4)=count_cell_pos(9,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'w'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(10,4)=count_cell_pos(10,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'x'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(11,4)=count_cell_pos(11,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'e'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(12,4)=count_cell_pos(12,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'aa'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(13,4)=count_cell_pos(13,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'ff'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(14,4)=count_cell_pos(14,4)+1;
+
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'c'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+        count_cell_neg(1,4)=count_cell_neg(1,4)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'d'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(2,4)=count_cell_neg(2,4)+1;
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'cc'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(3,4)=count_cell_neg(3,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'i'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(4,4)=count_cell_neg(4,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'j'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(5,4)=count_cell_neg(5,4)+1;
+
+       <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'k'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(6,4)=count_cell_neg(6,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'m'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(7,4)=count_cell_neg(7,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'r'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(8,4)=count_cell_neg(8,4)+1;
+
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'q'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(9,4)=count_cell_neg(9,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'w'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(10,4)=count_cell_neg(10,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'x'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(11,4)=count_cell_neg(11,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'e'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(12,4)=count_cell_neg(12,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'aa'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(13,4)=count_cell_neg(13,4)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,4),<span class="string">'ff'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(14,4)=count_cell_neg(14,4)+1;
+
+     <span class="keyword">else</span>
+         <span class="keyword">continue</span>;
+    <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,5),<span class="string">'v'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,5)=count_cell_pos(1,5)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'h'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,5)=count_cell_pos(2,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'bb'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,5)=count_cell_pos(3,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'j'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(4,5)=count_cell_pos(4,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'n'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(5,5)=count_cell_pos(5,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'z'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(6,5)=count_cell_pos(6,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'dd'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(7,5)=count_cell_pos(7,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'ff'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(8,5)=count_cell_pos(8,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'o'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(9,5)=count_cell_pos(9,5)+1;
+
+
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'v'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+        count_cell_neg(1,5)=count_cell_neg(1,5)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'h'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(2,5)=count_cell_neg(2,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'bb'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(3,5)=count_cell_neg(3,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'j'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(4,5)=count_cell_neg(4,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'n'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(5,5)=count_cell_neg(5,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'z'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(6,5)=count_cell_neg(6,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'dd'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(7,5)=count_cell_neg(7,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'ff'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(8,5)=count_cell_neg(8,5)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,5),<span class="string">'o'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+       count_cell_neg(9,5)=count_cell_neg(9,5)+1;
+     <span class="keyword">else</span>
+         <span class="keyword">continue</span>;
+    <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+  <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,6),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,6)=count_cell_pos(1,6)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,6),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,6)=count_cell_pos(2,6)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,6),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,6)=count_cell_neg(1,6)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,6),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,6)=count_cell_neg(2,6)+1;
+     <span class="keyword">else</span>
+         <span class="keyword">continue</span>;
+     <span class="keyword">end</span>
+  <span class="keyword">end</span>
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,8),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,8)=count_cell_pos(1,8)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,8),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,8)=count_cell_pos(2,8)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,8),<span class="string">'t'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,8)=count_cell_neg(1,8)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,8),<span class="string">'f'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,8)=count_cell_neg(2,8)+1;
+     <span class="keyword">else</span>
+         <span class="keyword">continue</span>;
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+ <span class="keyword">for</span> i=1:length(cellVectors)
+    <span class="keyword">if</span> strcmp(cellVectors(i,9),<span class="string">'g'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+        count_cell_pos(1,9)=count_cell_pos(1,9)+1;
+    <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'p'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(2,9)=count_cell_pos(2,9)+1;
+        <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'s'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'+'</span>)
+       count_cell_pos(3,9)=count_cell_pos(3,9)+1;
+  <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'g'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+      count_cell_neg(1,9)=count_cell_neg(1,9)+1;
+     <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'p'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(2,9)=count_cell_neg(2,9)+1;
+         <span class="keyword">elseif</span> strcmp(cellVectors(i,9),<span class="string">'s'</span>) &amp;&amp; strcmp(cellVectors(i,10),<span class="string">'-'</span>)
+         count_cell_neg(3,9)=count_cell_neg(3,9)+1;
+     <span class="keyword">else</span>
+         <span class="keyword">continue</span>;
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+ A1 = unique(cellVectors(:,1));
+ A1_count = numel(A1);
+ A2 = unique(cellVectors(:,2));
+ A2_count = numel(A2);
+ A3 = unique(cellVectors(:,3));
+ A3_count = numel(A3);
+ A4 = unique(cellVectors(:,4));
+ A4_count = numel(A4);
+ A5 = unique(cellVectors(:,5));
+ A5_count = numel(A5);
+ A6 = unique(cellVectors(:,6));
+ A6_count = numel(A6);
+ A7 = unique(cellVectors(:,7));
+ A7_count = numel(A7);
+ A8 = unique(cellVectors(:,8));
+ A8_count = numel(A8);
+ A9 = unique(cellVectors(:,9));
+ A9_count = numel(A9);
+ ls=1;
+ A=[A1_count A2_count A3_count A4_count A5_count A6_count A7_count A8_count A9_count];
+ p_cellpos=zeros(14,9);
+ p_cellneg=zeros(14,9);
+ <span class="keyword">for</span> i=1:9
+     <span class="keyword">for</span> j=1:14
+ <span class="keyword">if</span> (count_cell_pos(j,i)&gt;0)
+ p_cellpos(j,i) = (count_cell_pos(j,i)+ls)/(sum(count_cell_pos(:,i))+(ls*A(i)));
+
+ <span class="keyword">end</span>
+     <span class="keyword">end</span>
+ <span class="keyword">end</span>
+
+  <span class="keyword">for</span> i=1:9
+     <span class="keyword">for</span> j=1:14
+
+<span class="comment">%   B=any(count_cell_pos,i);</span>
+ <span class="keyword">if</span> (count_cell_neg(j,i)&gt;0)
+ p_cellneg(j,i) = (count_cell_neg(j,i)+ls)/(sum(count_cell_neg(:,i))+(ls*A(i)));
+
+ <span class="keyword">end</span>
+     <span class="keyword">end</span>
+  <span class="keyword">end</span>
+ <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Error using computeProbabilitymatrix (line 2)
+Not enough input arguments.
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [p_datapos,p_dataneg,p_cellpos,p_cellneg,data1_min,data1_increment,count_cell_pos]=computeProbabilitymatrix(cellVectors,datanew,k,l)
+count_data_pos=zeros(k,6);
+count_data_neg=zeros(k,6);
+
+ [n,n1]=size(datanew);
+ 
+ %compute the probability matrix which gives the probabilities of an
+ %attribute value give class. For example:
+ %P(X1='a'|class='+')
+ %The separate matrix is computed for the positive class as well as for
+ %negative class for each attribute.
+ %For the Continous data a slight different approach is used, that is,
+ %first binning is done and then the Probability is computed if the value
+ %lies in the corresponding bin or not.For example:
+ %P(X=min+(j-1)*increment<=x<min+j*increment|class='+')
+ %Furthermore, the laplacian smoothing is applied while computing the 
+ %probability of attribute values with no instances in the training data.
+ %the variable l and ls corresponds to the laplacian operator =1.
+ for u=1:n1
+ data1_max(u)=max(datanew(:,u));
+ data1_min(u)=min(datanew(:,u));
+ data1_range(u)=data1_max(u)-data1_min(u);
+ data1_increment(u)=data1_range(u)/(k-1);
+ 
+ for i=1:n
+     for j=1:k
+         L=data1_min(u)+(j-1)*data1_increment(u);
+         H=data1_min(u)+(j)*data1_increment(u);
+    if (L<=datanew(i,u)) && (datanew(i,u)<H) && strcmp(cellVectors(i,10),'+')
+        count_data_pos(j,u)=count_data_pos(j,u)+1;
+    end
+    if (L<=datanew(i,u)) && (datanew(i,u)<H) && strcmp(cellVectors(i,10),'-')
+        count_data_neg(j,u)=count_data_neg(j,u)+1;
+    end
+     end
+ end 
+ p_dataneg=(count_data_neg+l*ones(size(count_data_neg),'like',count_data_neg))/(sum(count_data_neg(:,1))+l*(k));
+ p_datapos=(count_data_pos+l*ones(size(count_data_pos),'like',count_data_pos))/(sum(count_data_pos(:,1))+l*(k));
+ 
+count_cell_pos=zeros(14,9);
+count_cell_neg=zeros(14,9);
+
+ for i=1:length(cellVectors)
+     if strcmp(cellVectors(i,1),'a') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,1)=count_cell_pos(1,1)+1;
+     elseif strcmp(cellVectors(i,1),'b') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,1)=count_cell_pos(2,1)+1;
+     elseif strcmp(cellVectors(i,1),'a') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,1)=count_cell_neg(1,1)+1;
+     elseif strcmp(cellVectors(i,1),'b') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,1)=count_cell_neg(2,1)+1;
+     else
+         continue;
+     end
+ end
+
+ 
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,2),'u') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,2)=count_cell_pos(1,2)+1;
+    elseif strcmp(cellVectors(i,2),'y') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,2)=count_cell_pos(2,2)+1;
+        elseif strcmp(cellVectors(i,2),'l') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,2)=count_cell_pos(3,2)+1;
+        elseif strcmp(cellVectors(i,2),'t') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(4,2)=count_cell_pos(4,2)+1;
+  elseif strcmp(cellVectors(i,2),'u') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,2)=count_cell_neg(1,2)+1;
+     elseif strcmp(cellVectors(i,2),'y') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,2)=count_cell_neg(2,2)+1;
+          elseif strcmp(cellVectors(i,2),'l') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(3,2)=count_cell_neg(3,2)+1;
+          elseif strcmp(cellVectors(i,2),'t') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(4,2)=count_cell_neg(4,2)+1;
+     else
+         continue;
+    end
+ end
+ 
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,3),'g') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,3)=count_cell_pos(1,3)+1;
+    elseif strcmp(cellVectors(i,3),'p') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,3)=count_cell_pos(2,3)+1;
+       elseif strcmp(cellVectors(i,3),'gg') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,3)=count_cell_pos(3,3)+1;
+  elseif strcmp(cellVectors(i,3),'g') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,3)=count_cell_neg(1,3)+1;
+     elseif strcmp(cellVectors(i,3),'p') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,3)=count_cell_neg(2,3)+1;
+         elseif strcmp(cellVectors(i,3),'gg') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(3,3)=count_cell_neg(3,3)+1;
+     else
+         continue;
+    end
+ end
+
+ 
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,4),'c') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,4)=count_cell_pos(1,4)+1;
+    elseif strcmp(cellVectors(i,4),'d') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,4)=count_cell_pos(2,4)+1;
+       elseif strcmp(cellVectors(i,4),'cc') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,4)=count_cell_pos(3,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'i') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(4,4)=count_cell_pos(4,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'j') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(5,4)=count_cell_pos(5,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'k') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(6,4)=count_cell_pos(6,4)+1;
+        elseif strcmp(cellVectors(i,4),'m') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(7,4)=count_cell_pos(7,4)+1;
+        elseif strcmp(cellVectors(i,4),'r') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(8,4)=count_cell_pos(8,4)+1;
+       
+        elseif strcmp(cellVectors(i,4),'q') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(9,4)=count_cell_pos(9,4)+1;
+        elseif strcmp(cellVectors(i,4),'w') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(10,4)=count_cell_pos(10,4)+1;
+        elseif strcmp(cellVectors(i,4),'x') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(11,4)=count_cell_pos(11,4)+1;
+        elseif strcmp(cellVectors(i,4),'e') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(12,4)=count_cell_pos(12,4)+1;
+        elseif strcmp(cellVectors(i,4),'aa') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(13,4)=count_cell_pos(13,4)+1;
+        elseif strcmp(cellVectors(i,4),'ff') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(14,4)=count_cell_pos(14,4)+1;
+ 
+    elseif strcmp(cellVectors(i,4),'c') && strcmp(cellVectors(i,10),'-')
+        count_cell_neg(1,4)=count_cell_neg(1,4)+1;
+    elseif strcmp(cellVectors(i,4),'d') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(2,4)=count_cell_neg(2,4)+1;
+       elseif strcmp(cellVectors(i,4),'cc') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(3,4)=count_cell_neg(3,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'i') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(4,4)=count_cell_neg(4,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'j') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(5,4)=count_cell_neg(5,4)+1;
+       
+       elseif strcmp(cellVectors(i,4),'k') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(6,4)=count_cell_neg(6,4)+1;
+        elseif strcmp(cellVectors(i,4),'m') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(7,4)=count_cell_neg(7,4)+1;
+        elseif strcmp(cellVectors(i,4),'r') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(8,4)=count_cell_neg(8,4)+1;
+       
+        elseif strcmp(cellVectors(i,4),'q') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(9,4)=count_cell_neg(9,4)+1;
+        elseif strcmp(cellVectors(i,4),'w') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(10,4)=count_cell_neg(10,4)+1;
+        elseif strcmp(cellVectors(i,4),'x') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(11,4)=count_cell_neg(11,4)+1;
+        elseif strcmp(cellVectors(i,4),'e') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(12,4)=count_cell_neg(12,4)+1;
+        elseif strcmp(cellVectors(i,4),'aa') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(13,4)=count_cell_neg(13,4)+1;
+        elseif strcmp(cellVectors(i,4),'ff') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(14,4)=count_cell_neg(14,4)+1;
+       
+     else
+         continue;
+    end
+ end
+ 
+ 
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,5),'v') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,5)=count_cell_pos(1,5)+1;
+    elseif strcmp(cellVectors(i,5),'h') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,5)=count_cell_pos(2,5)+1;
+        elseif strcmp(cellVectors(i,5),'bb') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,5)=count_cell_pos(3,5)+1;
+        elseif strcmp(cellVectors(i,5),'j') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(4,5)=count_cell_pos(4,5)+1;
+        elseif strcmp(cellVectors(i,5),'n') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(5,5)=count_cell_pos(5,5)+1;
+        elseif strcmp(cellVectors(i,5),'z') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(6,5)=count_cell_pos(6,5)+1;
+        elseif strcmp(cellVectors(i,5),'dd') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(7,5)=count_cell_pos(7,5)+1;
+        elseif strcmp(cellVectors(i,5),'ff') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(8,5)=count_cell_pos(8,5)+1;
+        elseif strcmp(cellVectors(i,5),'o') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(9,5)=count_cell_pos(9,5)+1;
+  
+       
+    elseif strcmp(cellVectors(i,5),'v') && strcmp(cellVectors(i,10),'-')
+        count_cell_neg(1,5)=count_cell_neg(1,5)+1;
+    elseif strcmp(cellVectors(i,5),'h') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(2,5)=count_cell_neg(2,5)+1;
+        elseif strcmp(cellVectors(i,5),'bb') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(3,5)=count_cell_neg(3,5)+1;
+        elseif strcmp(cellVectors(i,5),'j') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(4,5)=count_cell_neg(4,5)+1;
+        elseif strcmp(cellVectors(i,5),'n') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(5,5)=count_cell_neg(5,5)+1;
+        elseif strcmp(cellVectors(i,5),'z') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(6,5)=count_cell_neg(6,5)+1;
+        elseif strcmp(cellVectors(i,5),'dd') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(7,5)=count_cell_neg(7,5)+1;
+        elseif strcmp(cellVectors(i,5),'ff') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(8,5)=count_cell_neg(8,5)+1;
+        elseif strcmp(cellVectors(i,5),'o') && strcmp(cellVectors(i,10),'-')
+       count_cell_neg(9,5)=count_cell_neg(9,5)+1;
+     else
+         continue;
+    end
+ end
+
+  for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,6),'t') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,6)=count_cell_pos(1,6)+1;
+    elseif strcmp(cellVectors(i,6),'f') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,6)=count_cell_pos(2,6)+1;
+  elseif strcmp(cellVectors(i,6),'t') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,6)=count_cell_neg(1,6)+1;
+     elseif strcmp(cellVectors(i,6),'f') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,6)=count_cell_neg(2,6)+1;
+     else
+         continue;
+     end
+  end
+
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,8),'t') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,8)=count_cell_pos(1,8)+1;
+    elseif strcmp(cellVectors(i,8),'f') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,8)=count_cell_pos(2,8)+1;
+  elseif strcmp(cellVectors(i,8),'t') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,8)=count_cell_neg(1,8)+1;
+     elseif strcmp(cellVectors(i,8),'f') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,8)=count_cell_neg(2,8)+1;
+     else
+         continue;
+     end
+ end
+ 
+ for i=1:length(cellVectors)
+    if strcmp(cellVectors(i,9),'g') && strcmp(cellVectors(i,10),'+')
+        count_cell_pos(1,9)=count_cell_pos(1,9)+1;
+    elseif strcmp(cellVectors(i,9),'p') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(2,9)=count_cell_pos(2,9)+1;
+        elseif strcmp(cellVectors(i,9),'s') && strcmp(cellVectors(i,10),'+')
+       count_cell_pos(3,9)=count_cell_pos(3,9)+1;
+  elseif strcmp(cellVectors(i,9),'g') && strcmp(cellVectors(i,10),'-')
+      count_cell_neg(1,9)=count_cell_neg(1,9)+1;
+     elseif strcmp(cellVectors(i,9),'p') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(2,9)=count_cell_neg(2,9)+1;
+         elseif strcmp(cellVectors(i,9),'s') && strcmp(cellVectors(i,10),'-')
+         count_cell_neg(3,9)=count_cell_neg(3,9)+1;
+     else
+         continue;
+     end
+ end
+ 
+ A1 = unique(cellVectors(:,1));
+ A1_count = numel(A1);
+ A2 = unique(cellVectors(:,2));
+ A2_count = numel(A2);
+ A3 = unique(cellVectors(:,3));
+ A3_count = numel(A3);
+ A4 = unique(cellVectors(:,4));
+ A4_count = numel(A4);
+ A5 = unique(cellVectors(:,5));
+ A5_count = numel(A5);
+ A6 = unique(cellVectors(:,6));
+ A6_count = numel(A6);
+ A7 = unique(cellVectors(:,7));
+ A7_count = numel(A7);
+ A8 = unique(cellVectors(:,8));
+ A8_count = numel(A8);
+ A9 = unique(cellVectors(:,9));
+ A9_count = numel(A9);
+ ls=1;
+ A=[A1_count A2_count A3_count A4_count A5_count A6_count A7_count A8_count A9_count];
+ p_cellpos=zeros(14,9);
+ p_cellneg=zeros(14,9);
+ for i=1:9
+     for j=1:14
+ if (count_cell_pos(j,i)>0)
+ p_cellpos(j,i) = (count_cell_pos(j,i)+ls)/(sum(count_cell_pos(:,i))+(ls*A(i)));
+ 
+ end 
+     end
+ end
+
+  for i=1:9
+     for j=1:14
+
+%   B=any(count_cell_pos,i);
+ if (count_cell_neg(j,i)>0)
+ p_cellneg(j,i) = (count_cell_neg(j,i)+ls)/(sum(count_cell_neg(:,i))+(ls*A(i)));
+ 
+ end 
+     end
+  end
+ end
+end
+##### SOURCE END #####
+--></body></html>
